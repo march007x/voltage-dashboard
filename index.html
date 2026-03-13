@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voltage Monitoring Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .timestamp { text-align: right; color: #666; font-size: 0.9em; margin-bottom: 10px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+        .box { background: #e9ecef; padding: 20px; border-radius: 10px; text-align: center; transition: 0.3s; }
+        .box:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .box h3 { margin: 0 0 10px 0; font-size: 1.2em; color: #444; }
+        .box .value { font-size: 2.2em; font-weight: bold; color: #0056b3; }
+        .ai-box { background: #e3f2fd; border-left: 6px solid #0d6efd; padding: 20px; border-radius: 10px; }
+        .ai-box h3 { margin-top: 0; color: #0d6efd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ระบบตรวจสอบแรงดันไฟฟ้า IoT</h1>
+        </div>
+        
+        <div class="timestamp">อัปเดตข้อมูลล่าสุดเวลา: <span id="time">-</span></div>
+        
+        <div class="card grid">
+            <div class="box">
+                <h3>พัดลม</h3>
+                <div class="value"><span id="fan">-</span> V</div>
+            </div>
+            <div class="box">
+                <h3>ตู้เย็น</h3>
+                <div class="value"><span id="fridge">-</span> V</div>
+            </div>
+            <div class="box">
+                <h3>เครื่องฟอกอากาศ</h3>
+                <div class="value"><span id="air">-</span> V</div>
+            </div>
+        </div>
+
+        <div class="card ai-box">
+            <h3>🤖 สรุปวิเคราะห์จาก AI</h3>
+            <div id="ai-text" style="white-space: pre-wrap; line-height: 1.6; font-size: 1.05em;">กำลังรอการเชื่อมต่อข้อมูล...</div>
+        </div>
+    </div>
+
+    <script>
+        // นำ URL ของ Web App ที่คัดลอกไว้จากขั้นตอนที่ 1 มาวางในเครื่องหมายคำพูดด้านล่างนี้
+        const API_URL = "https://script.google.com/macros/s/AKfycbwU8bRkk47zrtQPxGVlxvQj9-vckPyIG6QgnddlagC-4ZmUvDvr4LCtdUhfy3YYhji1CA/exec";
+
+        async function fetchRealtimeData() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+
+                if (data.status !== "no data") {
+                    // นำข้อมูลไปแสดงตามจุดต่างๆ ใน HTML
+                    document.getElementById('time').innerText = data.timestamp || "-";
+                    document.getElementById('fan').innerText = data.fan !== "" ? data.fan : "-";
+                    document.getElementById('fridge').innerText = data.fridge !== "" ? data.fridge : "-";
+                    document.getElementById('air').innerText = data.airPurifier !== "" ? data.airPurifier : "-";
+                    
+                    // ส่วนของ AI
+                    document.getElementById('ai-text').innerText = data.aiAnalysis !== "" ? data.aiAnalysis : "กำลังให้ AI วิเคราะห์ข้อมูลชุดล่าสุด...";
+                }
+            } catch (error) {
+                console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
+            }
+        }
+
+        // โหลดข้อมูลครั้งแรกทันทีที่เปิดหน้าเว็บ
+        fetchRealtimeData();
+
+        // ตั้งรอบอัปเดตข้อมูลแบบต่อเนื่อง (ตั้งไว้ที่ 2 วินาทีเพื่อให้แสดงผลทันใจตามต้องการ)
+        setInterval(fetchRealtimeData, 2000); 
+    </script>
+</body>
+</html>
